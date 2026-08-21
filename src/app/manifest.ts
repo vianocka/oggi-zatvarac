@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Oggi Zatvarac",
     short_name: "Oggi",
-    description: "Oggi Zatvarac web app",
+    description: "Denná uzávierka - Oggi Zatvarac",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

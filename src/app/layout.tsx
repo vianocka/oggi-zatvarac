@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Oggi Zatvarac",
-  description: "Oggi Zatvarac web app",
+  description: "Denná uzávierka - Oggi Zatvarac",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -31,7 +31,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="en"
+      lang="sk"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">

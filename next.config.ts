@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Dev server is reached via the sandbox's published IP, not "localhost".
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
   async headers() {
     return [
       {

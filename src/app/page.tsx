@@ -1,4 +1,5 @@
-import { ContactForm } from "./contact-form";
+import { Suspense } from "react";
+import { DailyClosingForm } from "./daily-closing-form";
 
 export default function Home() {
   return (
@@ -6,13 +7,15 @@ export default function Home() {
       <main className="flex w-full max-w-md flex-col gap-6">
         <div className="flex flex-col gap-2 text-center sm:text-left">
           <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
-            Contact us
+            Denná uzávierka
           </h1>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Fill out the form and we&apos;ll get back to you.
+            Vyplňte formulár, hotovosť do obálky sa počíta automaticky.
           </p>
         </div>
-        <ContactForm />
+        <Suspense fallback={<p className="text-sm text-zinc-500">Načítava sa...</p>}>
+          <DailyClosingForm />
+        </Suspense>
       </main>
     </div>
   );

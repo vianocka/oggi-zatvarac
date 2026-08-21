@@ -12,10 +12,29 @@ datasource db {
   provider = "postgresql"
 }
 
-model ContactMessage {
-  id        String   @id @default(cuid())
-  name      String
-  email     String
-  message   String
-  createdAt DateTime @default(now())
+model DailyClosing {
+  id               String       @id @default(cuid())
+  date             DateTime     @unique @db.Date
+  totalSum         Decimal
+  terminal1        Decimal
+  terminal2        Decimal
+  choiceQr         Decimal
+  wolt             Decimal
+  choiceTips       Decimal
+  couvert          Decimal[]
+  blockyItems      BlockyItem[]
+  hotovostDoObalky Decimal
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}
+
+model BlockyItem {
+  id             String       @id @default(cuid())
+  nazov          String
+  suma           Decimal
+  position       Int
+  dailyClosing   DailyClosing @relation(fields: [dailyClosingId], references: [id], onDelete: Cascade)
+  dailyClosingId String
+
+  @@index([dailyClosingId])
 }
