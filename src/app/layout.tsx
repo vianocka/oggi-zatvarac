@@ -22,6 +22,10 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Oggi Zatvarac",
   },
+  // Suppresses Chrome's "Translate this page?" prompt.
+  other: {
+    google: "notranslate",
+  },
 };
 
 export const viewport: Viewport = {
@@ -32,6 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="sk"
+      translate="no"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
