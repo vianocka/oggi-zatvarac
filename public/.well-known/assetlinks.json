@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.vercel.oggi_zatvarac.twa",
+      "sha256_cert_fingerprints": [
+        "A9:A0:40:56:07:0C:58:FB:1B:0F:CF:DC:03:3C:9E:0F:0D:29:DD:91:A3:B2:32:7F:D8:6D:7A:0A:3C:97:D3:98"
+      ]
+    }
+  }
+]
