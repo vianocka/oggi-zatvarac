@@ -23,6 +23,16 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
         ],
       },
+      {
+        source: "/downloads/:path*.apk",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/vnd.android.package-archive",
+          },
+          { key: "Content-Disposition", value: "attachment" },
+        ],
+      },
     ];
   },
 };
