@@ -507,6 +507,15 @@ export function DailyClosingForm() {
         }
       />
 
+      {dotykackaResult?.ok && (
+        <div className="flex flex-col gap-1">
+          <span className="text-sm font-medium">Storno</span>
+          <div className="cursor-not-allowed rounded-md border border-black/[.08] bg-black/[.03] px-3 py-2 text-sm text-zinc-500 dark:border-white/[.145] dark:bg-white/[.05] dark:text-zinc-400">
+            {formatEur(dotykackaResult.storno)}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
           {isFetchingDotypay ? "Načítavam sumy z Dotypay..." : "Sumy z Dotypay"}

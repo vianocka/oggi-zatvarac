@@ -9,7 +9,7 @@ const PAYMENT_TYPE_CHOICE_QR = "901000006";
 const PAYMENT_TYPE_WOLT = "901000004";
 
 export type DotykackaDailyTotals =
-  | { ok: true; totalSum: number; choiceQr: number; wolt: number }
+  | { ok: true; totalSum: number; choiceQr: number; wolt: number; storno: number }
   | { ok: false; error: string };
 
 type PaymentTypeInfoEntry = { typeId?: unknown; total?: unknown };
@@ -82,18 +82,21 @@ export async function getDotykackaDailyTotals(
     }
 
     const report = (await res.json()) as {
-      moneyTransactionInfo?: { saleValue?: unknown };
+      moneyTransactionInfo?: { saleValue?: unknown; cancelValue?: unknown };
       revenue?: { paymentTypeInfo?: unknown };
     };
 
-    const totalSum = Number(report.moneyTransactionInfo?.saleValue) || 0;
+    // "Celková suma" = Total with VAT (saleValue) + Storno (cancelValue).
+    const totalWithVat = Number(report.moneyTransactionInfo?.saleValue) || 0;
+    const storno = Number(report.moneyTransactionInfo?.cancelValue) || 0;
     const paymentTypeInfo = report.revenue?.paymentTypeInfo;
 
     return {
       ok: true,
-      totalSum,
+      totalSum: totalWithVat + storno,
       choiceQr: sumByTypeId(paymentTypeInfo, PAYMENT_TYPE_CHOICE_QR),
       wolt: sumByTypeId(paymentTypeInfo, PAYMENT_TYPE_WOLT),
+      storno,
     };
   } catch (error) {
     return {
