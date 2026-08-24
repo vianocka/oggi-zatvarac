@@ -21,3 +21,11 @@ outside Android Studio, use **Build → Generate Signed Bundle / APK**.
 
 Edit `APP_URL` / `APP_HOST` at the top of
 `app/src/main/java/app/vercel/oggizatvarac/webview/MainActivity.kt`.
+
+## Access key
+
+The site 404s for anyone without the right key (see `src/proxy.ts` in the
+main project). `APP_URL` appends `?key=...` on first load, which the server
+exchanges for a long-lived cookie - so this app doesn't need to send it
+again after that. `APP_ACCESS_KEY` in this file must match the
+`APP_ACCESS_KEY` environment variable set on Vercel; rotate both together.

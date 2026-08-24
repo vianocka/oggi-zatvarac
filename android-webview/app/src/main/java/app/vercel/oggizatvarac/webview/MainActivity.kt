@@ -12,8 +12,13 @@ import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 
-private const val APP_URL = "https://oggi-zatvarac.vercel.app/"
 private const val APP_HOST = "oggi-zatvarac.vercel.app"
+
+// Exchanged by the server (see src/proxy.ts) for a long-lived cookie on
+// first load, so the site stays 404-for-everyone-else. Must match the
+// APP_ACCESS_KEY environment variable configured on Vercel.
+private const val APP_ACCESS_KEY = "YpDKh_wfI4ftJg9hgh2Q3Po6UcB0BqDL"
+private const val APP_URL = "https://$APP_HOST/?key=$APP_ACCESS_KEY"
 
 class MainActivity : ComponentActivity() {
 
