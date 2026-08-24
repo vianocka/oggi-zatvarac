@@ -19,13 +19,21 @@ outside Android Studio, use **Build → Generate Signed Bundle / APK**.
 
 ## Changing the URL
 
-Edit `APP_URL` / `APP_HOST` at the top of
+Edit `APP_HOST` / `BASE_URL` at the top of
 `app/src/main/java/app/vercel/oggizatvarac/webview/MainActivity.kt`.
 
-## Access key
+## Access code
 
 The site 404s for anyone without the right key (see `src/proxy.ts` in the
-main project). `APP_URL` appends `?key=...` on first load, which the server
-exchanges for a long-lived cookie - so this app doesn't need to send it
-again after that. `APP_ACCESS_KEY` in this file must match the
-`APP_ACCESS_KEY` environment variable set on Vercel; rotate both together.
+main project). This app does **not** ship the key in source: on first
+launch it shows a dialog asking for the access code, which must match the
+`APP_ACCESS_KEY` environment variable set on Vercel. Whoever sets up a
+device types it in once; it's then stored in Keystore-backed
+`EncryptedSharedPreferences` on that device and sent as `?key=...`, which
+the server exchanges for a long-lived cookie so it isn't resent on every
+load. A leaked or decompiled APK carries no secret.
+
+To rotate the key: change `APP_ACCESS_KEY` on Vercel and tell whoever runs
+the app the new code - no rebuild/reinstall needed. The app detects the old
+code no longer works (a 404 on the main page), clears what it had stored,
+and re-prompts automatically.
