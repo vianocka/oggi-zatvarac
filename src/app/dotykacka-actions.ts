@@ -1,6 +1,7 @@
 "use server";
 
 import { DOTYKACKA_API_BASE_URL } from "@/lib/dotykacka-auth";
+import { roundToCents } from "@/lib/daily-closing";
 
 const dateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -38,9 +39,10 @@ async function getAccessToken(): Promise<string> {
 
 function sumByTypeId(entries: unknown, typeId: string): number {
   if (!Array.isArray(entries)) return 0;
-  return (entries as PaymentTypeInfoEntry[])
+  const sum = (entries as PaymentTypeInfoEntry[])
     .filter((entry) => entry.typeId === typeId)
     .reduce((sum, entry) => sum + (Number(entry.total) || 0), 0);
+  return roundToCents(sum);
 }
 
 export async function getDotykackaDailyTotals(
@@ -88,12 +90,14 @@ export async function getDotykackaDailyTotals(
 
     // "Celková suma" = Total with VAT (saleValue) + Storno (cancelValue).
     const totalWithVat = Number(report.moneyTransactionInfo?.saleValue) || 0;
-    const storno = Number(report.moneyTransactionInfo?.cancelValue) || 0;
+    const storno = roundToCents(
+      Number(report.moneyTransactionInfo?.cancelValue) || 0
+    );
     const paymentTypeInfo = report.revenue?.paymentTypeInfo;
 
     return {
       ok: true,
-      totalSum: totalWithVat + storno,
+      totalSum: roundToCents(totalWithVat + storno),
       choiceQr: sumByTypeId(paymentTypeInfo, PAYMENT_TYPE_CHOICE_QR),
       wolt: sumByTypeId(paymentTypeInfo, PAYMENT_TYPE_WOLT),
       storno,

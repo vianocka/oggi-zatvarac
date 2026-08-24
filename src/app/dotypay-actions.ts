@@ -1,5 +1,7 @@
 "use server";
 
+import { roundToCents } from "@/lib/daily-closing";
+
 const DOTYPAY_BASE_URL = "https://portal.dotypay.com";
 const dateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -49,7 +51,7 @@ async function fetchBatchTotalsByTid(dateStr: string): Promise<TidAmount[]> {
   }
 
   return Array.from(totalsByTid.entries())
-    .map(([tid, amount]) => ({ tid, amount }))
+    .map(([tid, amount]) => ({ tid, amount: roundToCents(amount) }))
     .sort((a, b) => a.tid.localeCompare(b.tid));
 }
 

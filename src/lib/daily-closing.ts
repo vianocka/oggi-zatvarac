@@ -14,6 +14,14 @@ export type DailyClosingAmounts = {
   blocky: BlockyEntry[];
 };
 
+// Rounds to the nearest cent. Summing floats (e.g. amounts pulled from an
+// API and added together) routinely leaves binary-float artifacts like
+// 5917.699999999995 - round at the source so nothing downstream (display,
+// "Kopírovať" copying the value into an input, ...) ever sees them.
+export function roundToCents(value: number): number {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
 // "Čistý couvert" = 70% of "Couvert z účtu", rounded to 1 decimal place.
 export function couvertCistySuma(zUctu: number): number {
   return Math.round(zUctu * 0.7 * 10) / 10;

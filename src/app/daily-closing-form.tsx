@@ -46,20 +46,34 @@ function todayIso() {
 }
 
 // Keeps only digits and a single decimal separator (comma or dot), so typing
-// or pasting anything else has no effect - the field never shows it.
-function sanitizeAmountInput(raw: string): string {
-  const digitsAndSeparators = raw.replace(/[^0-9,.]/g, "");
-  const firstSeparatorIndex = digitsAndSeparators.search(/[,.]/);
-  if (firstSeparatorIndex === -1) return digitsAndSeparators;
+// or pasting anything else has no effect - the field never shows it. When
+// `allowNegative` is set, a single leading "-" is kept too (e.g. for Blocky
+// storno-style entries), wherever in the input it was typed.
+function sanitizeAmountInput(raw: string, allowNegative = false): string {
+  const allowedChars = allowNegative ? /[^0-9,.-]/g : /[^0-9,.]/g;
+  const cleaned = raw.replace(allowedChars, "");
+
+  const isNegative = allowNegative && cleaned.startsWith("-");
+  const unsigned = allowNegative ? cleaned.replace(/-/g, "") : cleaned;
+  const sign = isNegative ? "-" : "";
+
+  const firstSeparatorIndex = unsigned.search(/[,.]/);
+  if (firstSeparatorIndex === -1) return sign + unsigned;
   return (
-    digitsAndSeparators.slice(0, firstSeparatorIndex + 1) +
-    digitsAndSeparators.slice(firstSeparatorIndex + 1).replace(/[,.]/g, "")
+    sign +
+    unsigned.slice(0, firstSeparatorIndex + 1) +
+    unsigned.slice(firstSeparatorIndex + 1).replace(/[,.]/g, "")
   );
 }
 
 function parseAmount(value: string): number {
   const n = parseFloat(value.replace(",", "."));
   return Number.isFinite(n) ? n : 0;
+}
+
+// Cents-level tolerance so float rounding never causes a false mismatch.
+function amountsMatch(a: number, b: number): boolean {
+  return Math.abs(a - b) < 0.005;
 }
 
 function formatEur(value: number) {
@@ -112,13 +126,26 @@ function AmountInput({
 
 function SumBadge({
   amount,
+  matches,
   onCopy,
 }: {
   amount: number;
+  matches: boolean;
   onCopy: () => void;
 }) {
   return (
     <div className="flex flex-none items-center gap-1.5 whitespace-nowrap rounded-md border border-black/[.08] px-2 py-1.5 text-xs dark:border-white/[.145]">
+      <span
+        aria-hidden="true"
+        title={
+          matches
+            ? "Zhoduje sa so zadanou sumou"
+            : "Nezhoduje sa so zadanou sumou"
+        }
+        className={`h-2.5 w-2.5 flex-none rounded-sm ${
+          matches ? "bg-green-500" : "bg-red-500"
+        }`}
+      />
       <span>{formatEur(amount)}</span>
       <button
         type="button"
@@ -272,7 +299,9 @@ function RepeatableBlockyList({
           />
           <input
             type="text"
-            inputMode="decimal"
+            // "decimal" hides the "-" key on most mobile keyboards; Blocky
+            // amounts can be negative (e.g. storno), so use "text" instead.
+            inputMode="text"
             placeholder="Suma"
             aria-label={`Blocky ${index + 1} suma`}
             value={row.suma}
@@ -280,7 +309,7 @@ function RepeatableBlockyList({
               const next = [...values];
               next[index] = {
                 ...next[index],
-                suma: sanitizeAmountInput(e.target.value),
+                suma: sanitizeAmountInput(e.target.value, true),
               };
               onChange(next);
             }}
@@ -496,6 +525,10 @@ export function DailyClosingForm() {
           dotykackaResult?.ok ? (
             <SumBadge
               amount={dotykackaResult.totalSum}
+              matches={amountsMatch(
+                parseAmount(amounts.totalSum),
+                dotykackaResult.totalSum
+              )}
               onCopy={() =>
                 setAmounts({
                   ...amounts,
@@ -542,6 +575,10 @@ export function DailyClosingForm() {
           dotypayResult?.ok && dotypayResult.terminal1 ? (
             <SumBadge
               amount={dotypayResult.terminal1.amount}
+              matches={amountsMatch(
+                parseAmount(amounts.terminal1),
+                dotypayResult.terminal1.amount
+              )}
               onCopy={() =>
                 setAmounts({
                   ...amounts,
@@ -561,6 +598,10 @@ export function DailyClosingForm() {
           dotypayResult?.ok && dotypayResult.terminal2 ? (
             <SumBadge
               amount={dotypayResult.terminal2.amount}
+              matches={amountsMatch(
+                parseAmount(amounts.terminal2),
+                dotypayResult.terminal2.amount
+              )}
               onCopy={() =>
                 setAmounts({
                   ...amounts,
@@ -591,6 +632,10 @@ export function DailyClosingForm() {
           dotykackaResult?.ok ? (
             <SumBadge
               amount={dotykackaResult.choiceQr}
+              matches={amountsMatch(
+                parseAmount(amounts.choiceQr),
+                dotykackaResult.choiceQr
+              )}
               onCopy={() =>
                 setAmounts({
                   ...amounts,
@@ -610,6 +655,10 @@ export function DailyClosingForm() {
           dotykackaResult?.ok ? (
             <SumBadge
               amount={dotykackaResult.wolt}
+              matches={amountsMatch(
+                parseAmount(amounts.wolt),
+                dotykackaResult.wolt
+              )}
               onCopy={() =>
                 setAmounts({ ...amounts, wolt: String(dotykackaResult.wolt) })
               }
