@@ -115,8 +115,13 @@ class MainActivity : ComponentActivity() {
                     val failed = mainFrameLoadFailed
                     mainFrameLoadFailed = false
                     if (failed) {
-                        // Network-level failure: leave the stored key alone
-                        // and let the WebView's own offline error page show.
+                        // Network-level failure (e.g. ERR_NAME_NOT_RESOLVED):
+                        // leave the stored key alone - it was never actually
+                        // rejected - but don't assume the WebView shows its
+                        // own error page; it may not, leaving a blank/black
+                        // screen with no explanation.
+                        Log.d(TAG, "Main frame load failed (network) - showing retry dialog")
+                        showConnectionError(accessKey)
                         return
                     }
 
@@ -167,6 +172,16 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG, "loadApp: loading $BASE_URL?key=$accessKey")
         pendingAccessKey = accessKey
         webView.loadUrl("$BASE_URL?key=$accessKey")
+    }
+
+    private fun showConnectionError(accessKey: String) {
+        AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
+            .setTitle("Nepodarilo sa pripojiť")
+            .setMessage("Skontrolujte internetové pripojenie a skúste to znova.")
+            .setCancelable(false)
+            .setPositiveButton("Skúsiť znova") { _, _ -> loadApp(accessKey) }
+            .setNegativeButton("Zadať iný kód") { _, _ -> promptForAccessCode(null) }
+            .show()
     }
 
     private fun promptForAccessCode(message: String?) {
