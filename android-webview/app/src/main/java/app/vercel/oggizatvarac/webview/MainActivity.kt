@@ -5,6 +5,8 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.InputType
 import android.util.Log
 import android.view.ViewGroup
@@ -35,6 +37,7 @@ private const val BASE_URL = "https://$APP_HOST/"
 private const val PREFS_FILE = "secure_prefs"
 private const val PREF_ACCESS_KEY = "access_key"
 private const val TAG = "OggiAccessGate"
+private const val LOAD_TIMEOUT_MS = 15_000L
 
 class MainActivity : ComponentActivity() {
 
@@ -46,6 +49,9 @@ class MainActivity : ComponentActivity() {
     // there's no pending auth check.
     private var pendingAccessKey: String? = null
     private var mainFrameLoadFailed = false
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var timeoutRunnable: Runnable? = null
+    private var loadingDialog: AlertDialog? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -109,6 +115,8 @@ class MainActivity : ComponentActivity() {
                         "onPageFinished: url=$url pendingAccessKey=$pendingAccessKey " +
                             "mainFrameLoadFailed=$mainFrameLoadFailed",
                     )
+                    cancelTimeout()
+                    dismissLoadingIndicator()
                     val accessKey = pendingAccessKey ?: return
                     pendingAccessKey = null
 
@@ -171,7 +179,47 @@ class MainActivity : ComponentActivity() {
     private fun loadApp(accessKey: String) {
         Log.d(TAG, "loadApp: loading $BASE_URL?key=$accessKey")
         pendingAccessKey = accessKey
+        mainFrameLoadFailed = false
+        showLoadingIndicator()
+        scheduleTimeout(accessKey)
         webView.loadUrl("$BASE_URL?key=$accessKey")
+    }
+
+    // Neither onReceivedError nor onPageFinished is guaranteed to fire
+    // promptly (seen taking 40+ seconds, or not firing at all, on a flaky
+    // emulator network) - this is the backstop that guarantees the user
+    // sees *something* within a bounded time either way.
+    private fun scheduleTimeout(accessKey: String) {
+        cancelTimeout()
+        val runnable = Runnable {
+            Log.d(TAG, "Load timed out waiting for a response")
+            if (pendingAccessKey == accessKey) {
+                pendingAccessKey = null
+                dismissLoadingIndicator()
+                showConnectionError(accessKey)
+            }
+        }
+        timeoutRunnable = runnable
+        mainHandler.postDelayed(runnable, LOAD_TIMEOUT_MS)
+    }
+
+    private fun cancelTimeout() {
+        timeoutRunnable?.let { mainHandler.removeCallbacks(it) }
+        timeoutRunnable = null
+    }
+
+    private fun showLoadingIndicator() {
+        dismissLoadingIndicator()
+        loadingDialog = AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
+            .setMessage("Overuje sa prístup…")
+            .setCancelable(false)
+            .create()
+        loadingDialog?.show()
+    }
+
+    private fun dismissLoadingIndicator() {
+        loadingDialog?.dismiss()
+        loadingDialog = null
     }
 
     private fun showConnectionError(accessKey: String) {
@@ -207,6 +255,8 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        cancelTimeout()
+        dismissLoadingIndicator()
         webView.destroy()
         super.onDestroy()
     }
