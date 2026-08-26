@@ -5,6 +5,8 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.InputType
 import android.view.ViewGroup
 import android.webkit.WebChromeClient
@@ -18,6 +20,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
 
 private const val APP_HOST = "oggi-zatvarac.vercel.app"
 private const val BASE_URL = "https://$APP_HOST/"
@@ -27,8 +32,7 @@ private const val BASE_URL = "https://$APP_HOST/"
 // EncryptedSharedPreferences - never in source, so a shared or decompiled
 // APK carries no secret. The server exchanges it for a long-lived cookie on
 // first load, so this prompt only reappears if that access is ever revoked
-// (e.g. the key gets rotated) - a 404 for the main page clears the stored
-// value and asks again.
+// (e.g. the key gets rotated).
 private const val PREFS_FILE = "secure_prefs"
 private const val PREF_ACCESS_KEY = "access_key"
 
@@ -36,6 +40,7 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var webView: WebView
     private lateinit var prefs: SharedPreferences
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,12 +83,16 @@ class MainActivity : ComponentActivity() {
                     errorResponse: WebResourceResponse,
                 ) {
                     super.onReceivedHttpError(view, request, errorResponse)
-                    // Only the top-level page 404-ing means "the access code
-                    // no longer works" - a missing image/subresource doesn't.
+                    // Safety net for a code that gets revoked *mid-session*
+                    // (cookie stops working after a rotation). The initial
+                    // launch / code-entry path below never relies on this -
+                    // it checks explicitly first, so a wrong code always
+                    // gets an immediate, visible message instead of quietly
+                    // rendering the server's blank 404 page.
                     if (request.isForMainFrame && errorResponse.statusCode == 404) {
                         runOnUiThread {
                             prefs.edit().remove(PREF_ACCESS_KEY).apply()
-                            promptForAccessCode(retry = true)
+                            promptForAccessCode("Prístup vypršal. Zadajte kód znova.")
                         }
                     }
                 }
@@ -113,39 +122,61 @@ class MainActivity : ComponentActivity() {
 
         val storedKey = prefs.getString(PREF_ACCESS_KEY, null)
         if (storedKey != null) {
-            loadApp(storedKey)
+            verifyThenLoad(storedKey)
         } else {
-            promptForAccessCode(retry = false)
+            promptForAccessCode(null)
         }
     }
 
-    private fun loadApp(accessKey: String) {
-        webView.loadUrl("$BASE_URL?key=$accessKey")
+    // Checks the code against the server directly (off the WebView
+    // entirely) before ever loading it, so a wrong code always produces an
+    // explicit dialog. A confirmed-wrong code (404) clears what was stored
+    // and re-prompts; anything else (network hiccup, timeout, ...) is
+    // treated as "can't tell" and falls through to loading the WebView
+    // anyway, which has its own reasonable offline error page for that.
+    private fun verifyThenLoad(accessKey: String) {
+        Thread {
+            val confirmedInvalid = try {
+                val connection =
+                    URL("$BASE_URL?key=$accessKey").openConnection() as HttpURLConnection
+                connection.instanceFollowRedirects = false
+                connection.connectTimeout = 10_000
+                connection.readTimeout = 10_000
+                val code = connection.responseCode
+                connection.disconnect()
+                code == 404
+            } catch (e: IOException) {
+                false
+            }
+
+            mainHandler.post {
+                if (confirmedInvalid) {
+                    prefs.edit().remove(PREF_ACCESS_KEY).apply()
+                    promptForAccessCode("Kód nie je platný. Skúste to znova.")
+                } else {
+                    prefs.edit().putString(PREF_ACCESS_KEY, accessKey).apply()
+                    webView.loadUrl("$BASE_URL?key=$accessKey")
+                }
+            }
+        }.start()
     }
 
-    private fun promptForAccessCode(retry: Boolean) {
+    private fun promptForAccessCode(message: String?) {
         val input = EditText(this).apply {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
             hint = "Prístupový kód"
         }
         AlertDialog.Builder(this)
             .setTitle("Prístupový kód")
-            .setMessage(
-                if (retry) {
-                    "Kód nie je platný. Skúste to znova."
-                } else {
-                    "Zadajte prístupový kód pre Oggi Zatvárač."
-                }
-            )
+            .setMessage(message ?: "Zadajte prístupový kód pre Oggi Zatvárač.")
             .setView(input)
             .setCancelable(false)
             .setPositiveButton("Pokračovať") { _, _ ->
                 val value = input.text.toString().trim()
                 if (value.isEmpty()) {
-                    promptForAccessCode(retry = false)
+                    promptForAccessCode("Zadajte kód.")
                 } else {
-                    prefs.edit().putString(PREF_ACCESS_KEY, value).apply()
-                    loadApp(value)
+                    verifyThenLoad(value)
                 }
             }
             .show()
