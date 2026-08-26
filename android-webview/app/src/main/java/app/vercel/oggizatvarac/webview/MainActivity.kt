@@ -166,7 +166,12 @@ class MainActivity : ComponentActivity() {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
             hint = "Prístupový kód"
         }
-        AlertDialog.Builder(this)
+        // Theme.OggiZatvarac only overrides windowBackground/statusBarColor,
+        // leaving dialog surface/text colors to inherit unpredictably - so
+        // this was rendering with poor (sometimes invisible) contrast against
+        // the app's dark background. Force a known-good system alert style
+        // instead of trusting the host theme.
+        AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
             .setTitle("Prístupový kód")
             .setMessage(message ?: "Zadajte prístupový kód pre Oggi Zatvárač.")
             .setView(input)
