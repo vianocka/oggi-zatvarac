@@ -34,10 +34,11 @@ the server exchanges for a long-lived cookie so it isn't resent on every
 load. A leaked or decompiled APK carries no secret.
 
 To rotate the key: change `APP_ACCESS_KEY` on Vercel and tell whoever runs
-the app the new code - no rebuild/reinstall needed. Before loading anything,
-the app checks the code directly against the server (a plain HTTP request,
-not routed through the WebView); a confirmed-wrong code clears what was
-stored and re-prompts with a clear message right away, rather than silently
-showing whatever blank page the server happens to return. A network hiccup
-during that check doesn't wipe the stored code - it just falls through to
-loading the WebView anyway.
+the app the new code - no rebuild/reinstall needed. The app tells success
+from failure by what the *same* request the WebView makes actually does: a
+correct code gets redirected to a `key`-less URL (and the app stores it);
+a wrong one gets a 404 with the `key=...` URL left untouched (and the app
+clears what was stored, then re-prompts with "Kód nie je platný. Skúste to
+znova."). A connection-level failure (no signal, DNS hiccup, ...) is
+tracked separately so it's never mistaken for a rejected code - the stored
+code is left alone and the WebView's own offline error page shows instead.
