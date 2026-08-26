@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.InputType
+import android.util.Log
 import android.view.ViewGroup
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
@@ -33,6 +34,7 @@ private const val BASE_URL = "https://$APP_HOST/"
 // failure.
 private const val PREFS_FILE = "secure_prefs"
 private const val PREF_ACCESS_KEY = "access_key"
+private const val TAG = "OggiAccessGate"
 
 class MainActivity : ComponentActivity() {
 
@@ -86,6 +88,12 @@ class MainActivity : ComponentActivity() {
                     error: WebResourceError,
                 ) {
                     super.onReceivedError(view, request, error)
+                    Log.d(
+                        TAG,
+                        "onReceivedError: mainFrame=${request.isForMainFrame} " +
+                            "url=${request.url} code=${error.errorCode} " +
+                            "desc=${error.description}",
+                    )
                     // A DNS/connection-level failure, not a rejected code -
                     // tracked so onPageFinished doesn't misread "couldn't
                     // reach the server" as "wrong code".
@@ -96,6 +104,11 @@ class MainActivity : ComponentActivity() {
 
                 override fun onPageFinished(view: WebView, url: String) {
                     super.onPageFinished(view, url)
+                    Log.d(
+                        TAG,
+                        "onPageFinished: url=$url pendingAccessKey=$pendingAccessKey " +
+                            "mainFrameLoadFailed=$mainFrameLoadFailed",
+                    )
                     val accessKey = pendingAccessKey ?: return
                     pendingAccessKey = null
 
@@ -110,9 +123,11 @@ class MainActivity : ComponentActivity() {
                     if (url.contains("key=")) {
                         // Still carrying the key param means the server
                         // never redirected it away, i.e. it was rejected.
+                        Log.d(TAG, "Code rejected (key= still present) - clearing + re-prompting")
                         prefs.edit().remove(PREF_ACCESS_KEY).apply()
                         promptForAccessCode("Kód nie je platný. Skúste to znova.")
                     } else {
+                        Log.d(TAG, "Code accepted - storing")
                         prefs.edit().putString(PREF_ACCESS_KEY, accessKey).apply()
                     }
                 }
@@ -149,11 +164,13 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun loadApp(accessKey: String) {
+        Log.d(TAG, "loadApp: loading $BASE_URL?key=$accessKey")
         pendingAccessKey = accessKey
         webView.loadUrl("$BASE_URL?key=$accessKey")
     }
 
     private fun promptForAccessCode(message: String?) {
+        Log.d(TAG, "promptForAccessCode: message=$message")
         val input = EditText(this).apply {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
             hint = "Prístupový kód"
