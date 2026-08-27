@@ -83,6 +83,13 @@ function formatEur(value: number) {
   }).format(value);
 }
 
+function formatDateTime(iso: string) {
+  return new Intl.DateTimeFormat("sk-SK", {
+    dateStyle: "long",
+    timeStyle: "short",
+  }).format(new Date(iso));
+}
+
 type FieldKey =
   | "totalSum"
   | "terminal1"
@@ -353,6 +360,9 @@ export function DailyClosingForm() {
   const [couvert, setCouvert] = useState<string[]>([]);
   const [blocky, setBlocky] = useState<BlockyRow[]>([]);
   const [isLoadingRecord, startLoadingRecord] = useTransition();
+  // ISO timestamp of when the record for the selected date was last saved,
+  // or null if it never has been.
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
   const [dotypayState, setDotypayState] = useState<{
     date: string;
@@ -427,10 +437,12 @@ export function DailyClosingForm() {
             suma: String(item.suma),
           }))
         );
+        setLastSavedAt(record.updatedAt);
       } else {
         setAmounts(emptyAmounts);
         setCouvert([]);
         setBlocky([]);
+        setLastSavedAt(null);
       }
     });
 
@@ -480,6 +492,9 @@ export function DailyClosingForm() {
   if (state !== lastHandledState) {
     setLastHandledState(state);
     setShowMessage(Boolean(state.message));
+    if (state.ok && state.updatedAt) {
+      setLastSavedAt(state.updatedAt);
+    }
   }
 
   useEffect(() => {
@@ -513,6 +528,13 @@ export function DailyClosingForm() {
         {isLoadingRecord && (
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
             Načítavam záznam pre zvolený dátum...
+          </p>
+        )}
+        {!isLoadingRecord && (
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            {lastSavedAt
+              ? `Uzávierka z tohoto dňa bola uložená dňa ${formatDateTime(lastSavedAt)}.`
+              : "Táto uzávierka ešte nebola uložená."}
           </p>
         )}
       </div>

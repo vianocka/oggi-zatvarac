@@ -39,6 +39,7 @@ export type DailyClosingState = {
   ok: boolean;
   message: string;
   hotovostDoObalky?: number;
+  updatedAt?: string;
 };
 
 export async function saveDailyClosing(
@@ -72,7 +73,7 @@ export async function saveDailyClosing(
     hotovostDoObalky,
   };
 
-  await prisma.dailyClosing.upsert({
+  const saved = await prisma.dailyClosing.upsert({
     where: { date },
     create: {
       ...scalarFields,
@@ -91,6 +92,7 @@ export async function saveDailyClosing(
     ok: true,
     message: `Uložené pre ${data.date}.`,
     hotovostDoObalky,
+    updatedAt: saved.updatedAt.toISOString(),
   };
 }
 
@@ -103,6 +105,7 @@ export type DailyClosingRecord = {
   choiceTips: number;
   couvert: number[];
   blocky: { nazov: string; suma: number }[];
+  updatedAt: string;
 };
 
 export async function getDailyClosing(
@@ -130,5 +133,6 @@ export async function getDailyClosing(
       nazov: item.nazov,
       suma: Number(item.suma),
     })),
+    updatedAt: record.updatedAt.toISOString(),
   };
 }
