@@ -530,14 +530,21 @@ export function DailyClosingForm() {
             Načítavam záznam pre zvolený dátum...
           </p>
         )}
-        {!isLoadingRecord && (
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            {lastSavedAt
-              ? `Uzávierka z tohoto dňa bola uložená dňa ${formatDateTime(lastSavedAt)}.`
-              : "Táto uzávierka ešte nebola uložená."}
-          </p>
-        )}
       </div>
+
+      {!isLoadingRecord && (
+        <div
+          className={`rounded-md border px-3 py-2 text-sm font-medium ${
+            lastSavedAt
+              ? "border-green-600 text-green-600 dark:border-green-400 dark:text-green-400"
+              : "border-orange-500 text-orange-500 dark:border-orange-400 dark:text-orange-400"
+          }`}
+        >
+          {lastSavedAt
+            ? `Uzávierka z tohoto dňa bola uložená dňa ${formatDateTime(lastSavedAt)}.`
+            : "Táto uzávierka ešte nebola uložená."}
+        </div>
+      )}
 
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
