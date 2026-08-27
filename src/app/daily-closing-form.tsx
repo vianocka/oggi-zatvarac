@@ -468,6 +468,26 @@ export function DailyClosingForm() {
     });
   }, initialState);
 
+  // Auto-dismiss the save result after a few seconds instead of leaving it
+  // on screen until the next submit or a page refresh. `state` gets a new
+  // object identity on every action result (even an identical message
+  // string on a second save), so "did state just change" is tracked by
+  // comparing against the previous one seen - adjusted during render
+  // (React's recommended pattern) rather than via setState inside an
+  // effect, which would trigger cascading renders.
+  const [showMessage, setShowMessage] = useState(false);
+  const [lastHandledState, setLastHandledState] = useState(state);
+  if (state !== lastHandledState) {
+    setLastHandledState(state);
+    setShowMessage(Boolean(state.message));
+  }
+
+  useEffect(() => {
+    if (!showMessage) return;
+    const timer = setTimeout(() => setShowMessage(false), 4000);
+    return () => clearTimeout(timer);
+  }, [showMessage, state]);
+
   return (
     <form action={formAction} className="flex w-full max-w-md flex-col gap-5">
       <div className="flex flex-col gap-1">
@@ -685,7 +705,7 @@ export function DailyClosingForm() {
 
       <SubmitButton />
 
-      {state.message && (
+      {showMessage && state.message && (
         <p
           aria-live="polite"
           className={`text-sm ${state.ok ? "text-green-600" : "text-red-600"}`}
