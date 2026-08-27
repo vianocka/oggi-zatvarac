@@ -19,26 +19,22 @@ outside Android Studio, use **Build → Generate Signed Bundle / APK**.
 
 ## Changing the URL
 
-Edit `APP_HOST` / `BASE_URL` at the top of
+Edit `APP_URL` / `APP_HOST` at the top of
 `app/src/main/java/app/vercel/oggizatvarac/webview/MainActivity.kt`.
 
-## Access code
+## Access code (currently disabled)
 
-The site 404s for anyone without the right key (see `src/proxy.ts` in the
-main project). This app does **not** ship the key in source: on first
-launch it shows a dialog asking for the access code, which must match the
-`APP_ACCESS_KEY` environment variable set on Vercel. Whoever sets up a
-device types it in once; it's then stored in Keystore-backed
-`EncryptedSharedPreferences` on that device and sent as `?key=...`, which
-the server exchanges for a long-lived cookie so it isn't resent on every
-load. A leaked or decompiled APK carries no secret.
+The site *can* be gated behind an access code (see `src/proxy.ts` in the
+main project) - it 404s for anyone without a matching `APP_ACCESS_KEY`.
+That env var has been removed from Vercel for now (`proxy.ts` no-ops when
+it's unset), so the site is public and this app is back to a plain WebView
+with no code prompt.
 
-To rotate the key: change `APP_ACCESS_KEY` on Vercel and tell whoever runs
-the app the new code - no rebuild/reinstall needed. The app tells success
-from failure by what the *same* request the WebView makes actually does: a
-correct code gets redirected to a `key`-less URL (and the app stores it);
-a wrong one gets a 404 with the `key=...` URL left untouched (and the app
-clears what was stored, then re-prompts with "Kód nie je platný. Skúste to
-znova."). A connection-level failure (no signal, DNS hiccup, ...) is
-tracked separately so it's never mistaken for a rejected code - the stored
-code is left alone and the WebView's own offline error page shows instead.
+The earlier version of this app (see git history around
+"Show an explicit message when the access code is wrong" and nearby
+commits) prompted for the code on first launch and stored it in
+Keystore-backed `EncryptedSharedPreferences` - but it kept re-prompting
+after the app was fully closed and relaunched rather than staying
+remembered, which was never root-caused. Re-enabling the gate later means
+re-adding `APP_ACCESS_KEY` on Vercel *and* fixing (or reimplementing) that
+persistence in the app before it's worth turning back on.
