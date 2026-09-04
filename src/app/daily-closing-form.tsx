@@ -45,6 +45,16 @@ function todayIso() {
   return new Date(now.getTime() - offset * 60_000).toISOString().slice(0, 10);
 }
 
+// Shifts an ISO "YYYY-MM-DD" date by `days` (negative to go back), rolling
+// over months/years correctly. Parsed as UTC midnight, same convention as
+// the date handling on the server (see actions.ts), so this never drifts
+// by a day near a DST boundary.
+function shiftDateIso(iso: string, days: number): string {
+  const d = new Date(`${iso}T00:00:00.000Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 // Keeps only digits and a single decimal separator (comma or dot), so typing
 // or pasting anything else has no effect - the field never shows it. When
 // `allowNegative` is set, a single leading "-" is kept too (e.g. for Blocky
@@ -493,22 +503,41 @@ export function DailyClosingForm() {
         <label htmlFor="date" className="text-sm font-medium">
           Dátum
         </label>
-        <input
-          ref={dateInputRef}
-          id="date"
-          type="date"
-          required
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          onClick={() => {
-            try {
-              dateInputRef.current?.showPicker?.();
-            } catch {
-              // Unsupported in this browser; native click-to-open still applies.
-            }
-          }}
-          className="field"
-        />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setDate((d) => shiftDateIso(d, -1))}
+            aria-label="Predchádzajúci deň"
+            className="btn-icon"
+          >
+            ‹
+          </button>
+          <input
+            ref={dateInputRef}
+            id="date"
+            type="date"
+            lang="sk"
+            required
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            onClick={() => {
+              try {
+                dateInputRef.current?.showPicker?.();
+              } catch {
+                // Unsupported in this browser; native click-to-open still applies.
+              }
+            }}
+            className="field min-w-0 flex-1"
+          />
+          <button
+            type="button"
+            onClick={() => setDate((d) => shiftDateIso(d, 1))}
+            aria-label="Nasledujúci deň"
+            className="btn-icon"
+          >
+            ›
+          </button>
+        </div>
         {isLoadingRecord && (
           <p className="text-xs text-muted">Načítavam záznam pre zvolený dátum...</p>
         )}
