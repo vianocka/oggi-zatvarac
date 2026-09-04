@@ -3,19 +3,21 @@ import { DailyClosingForm } from "./daily-closing-form";
 
 export default function Home() {
   return (
-    <div className="flex flex-1 items-center justify-center bg-zinc-50 px-6 py-16 font-sans dark:bg-black">
-      <main className="flex w-full max-w-md flex-col gap-6">
-        <div className="flex flex-col gap-2 text-center sm:text-left">
-          <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
+    <div className="flex flex-1 items-center justify-center px-4 py-10 font-sans sm:px-6 sm:py-16">
+      <main className="flex w-full max-w-lg flex-col gap-6">
+        <div className="flex flex-col gap-2 px-1 text-center sm:text-left">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Denná uzávierka
           </h1>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="text-sm text-muted">
             Vyplňte formulár, hotovosť do obálky sa počíta automaticky.
           </p>
         </div>
-        <Suspense fallback={<p className="text-sm text-zinc-500">Načítava sa...</p>}>
-          <DailyClosingForm />
-        </Suspense>
+        <div className="card">
+          <Suspense fallback={<p className="text-sm text-muted">Načítava sa...</p>}>
+            <DailyClosingForm />
+          </Suspense>
+        </div>
       </main>
     </div>
   );

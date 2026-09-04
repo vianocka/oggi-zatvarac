@@ -1,26 +1,87 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens. Every text color below clears WCAG AA (4.5:1) against its
+ * matching background - `muted`, `success`, `danger`, `warning` and
+ * `accent` are all text-safe on `background`/`surface`, not just
+ * decorative (verified: 5.0-7.8:1 in light, 7.2-11.9:1 in dark). `border`
+ * clears the separate 1.4.11 non-text minimum (3:1) against both
+ * `background` and `surface` - it's not just a divider here, it's the only
+ * visual boundary on form fields, which share their background with the
+ * card behind them. Dark-mode values swap to lighter tints, since light
+ * text/borders need to be lighter to hit the same ratio on a dark ground.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fafafa; /* zinc-50 */
+  --foreground: #18181b; /* zinc-900 - 17.0:1 on background */
+  --surface: #ffffff;
+  --surface-muted: #f4f4f5; /* zinc-100 */
+  --border: #71717a; /* zinc-500 - 4.8:1 on white */
+  --muted: #52525b; /* zinc-600 - 7.7:1 on white */
+  --accent: #1d4ed8; /* blue-700 - 6.7:1 on white */
+  --success: #15803d; /* green-700 - 5.0:1 on white */
+  --danger: #b91c1c; /* red-700 - 6.5:1 on white */
+  --warning: #b45309; /* amber-700 - 5.0:1 on white */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #09090b; /* zinc-950 */
+    --foreground: #fafafa; /* zinc-50 - 19.1:1 on background */
+    --surface: #18181b; /* zinc-900 */
+    --surface-muted: #27272a; /* zinc-800 */
+    --border: #71717a; /* zinc-500 - 3.7:1 on zinc-900 */
+    --muted: #a1a1aa; /* zinc-400 - 7.8:1 on zinc-950 */
+    --accent: #60a5fa; /* blue-400 - 7.8:1 on zinc-950 */
+    --success: #4ade80; /* green-400 - 11.4:1 on zinc-950 */
+    --danger: #f87171; /* red-400 - 7.2:1 on zinc-950 */
+    --warning: #fbbf24; /* amber-400 - 11.9:1 on zinc-950 */
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer components {
+  /* Text/date inputs and their read-only "computed value" siblings. */
+  .field {
+    @apply rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground shadow-sm outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-muted/70 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-muted disabled:text-muted disabled:shadow-none;
+  }
+
+  /* Text-only actions: "Kopírovať", "Obnoviť", "+ Pridať". */
+  .btn-ghost {
+    @apply rounded text-sm font-medium text-accent outline-none transition-colors hover:underline focus-visible:ring-2 focus-visible:ring-accent/40 disabled:pointer-events-none disabled:opacity-50 disabled:hover:no-underline;
+  }
+
+  /* The "×" remove-row buttons. */
+  .btn-icon-danger {
+    @apply flex items-center justify-center rounded-lg border border-border px-2.5 py-2 text-sm font-medium text-danger outline-none transition-colors hover:border-danger/40 hover:bg-danger/10 focus-visible:ring-2 focus-visible:ring-danger/40;
+  }
+
+  /* Primary submit action. */
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background shadow-sm outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent/50 disabled:opacity-50;
+  }
+
+  /* The centered form's card surface. */
+  .card {
+    @apply rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-8;
+  }
 }

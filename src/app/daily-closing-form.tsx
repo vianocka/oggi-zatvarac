@@ -112,7 +112,7 @@ function AmountInput({
   extra?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-sm font-medium">
         {label}
       </label>
@@ -123,7 +123,7 @@ function AmountInput({
           inputMode="decimal"
           value={value}
           onChange={(e) => onChange(sanitizeAmountInput(e.target.value))}
-          className="flex-1 rounded-md border border-black/[.08] bg-transparent px-3 py-2 text-sm dark:border-white/[.145]"
+          className="field min-w-0 flex-1"
         />
         {extra}
       </div>
@@ -141,7 +141,7 @@ function SumBadge({
   onCopy: () => void;
 }) {
   return (
-    <div className="flex flex-none items-center gap-1.5 whitespace-nowrap rounded-md border border-black/[.08] px-2 py-1.5 text-xs dark:border-white/[.145]">
+    <div className="flex flex-none items-center gap-1.5 whitespace-nowrap rounded-lg border border-border bg-surface-muted px-2 py-1.5 text-xs">
       <span
         aria-hidden="true"
         title={
@@ -149,16 +149,12 @@ function SumBadge({
             ? "Zhoduje sa so zadanou sumou"
             : "Nezhoduje sa so zadanou sumou"
         }
-        className={`h-2.5 w-2.5 flex-none rounded-sm ${
-          matches ? "bg-green-500" : "bg-red-500"
+        className={`h-2.5 w-2.5 flex-none rounded-full ${
+          matches ? "bg-success" : "bg-danger"
         }`}
       />
-      <span>{formatEur(amount)}</span>
-      <button
-        type="button"
-        onClick={onCopy}
-        className="font-medium text-blue-600 hover:underline dark:text-blue-400"
-      >
+      <span className="font-medium">{formatEur(amount)}</span>
+      <button type="button" onClick={onCopy} className="btn-ghost">
         Kopírovať
       </button>
     </div>
@@ -177,20 +173,16 @@ function ListHeader({
   onAdd: () => void;
 }) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-2">
       <div className="flex items-baseline gap-2">
         <span className="text-sm font-medium">{title}</span>
         {count > 0 && (
-          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+          <span className="text-xs text-muted">
             {count} · {formatEur(subtotal)}
           </span>
         )}
       </div>
-      <button
-        type="button"
-        onClick={onAdd}
-        className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
-      >
+      <button type="button" onClick={onAdd} className="btn-ghost">
         + Pridať
       </button>
     </div>
@@ -218,9 +210,7 @@ function RepeatableCouvertList({
         onAdd={() => onChange([...values, ""])}
       />
       {values.length === 0 && (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Žiadne položky.
-        </p>
+        <p className="text-sm text-muted">Žiadne položky.</p>
       )}
       {values.map((value, index) => {
         const cistyDisplay =
@@ -238,7 +228,7 @@ function RepeatableCouvertList({
                 next[index] = sanitizeAmountInput(e.target.value);
                 onChange(next);
               }}
-              className="flex-1 rounded-md border border-black/[.08] bg-transparent px-3 py-2 text-sm dark:border-white/[.145]"
+              className="field min-w-0 flex-1"
             />
             <input
               type="text"
@@ -247,13 +237,13 @@ function RepeatableCouvertList({
               placeholder="Čistý couvert"
               aria-label={`Čistý couvert ${index + 1}`}
               value={cistyDisplay}
-              className="flex-1 cursor-not-allowed rounded-md border border-black/[.08] bg-black/[.03] px-3 py-2 text-sm text-zinc-500 dark:border-white/[.145] dark:bg-white/[.05] dark:text-zinc-400"
+              className="field min-w-0 flex-1"
             />
             <button
               type="button"
               onClick={() => onChange(values.filter((_, i) => i !== index))}
               aria-label={`Odstrániť Couvert ${index + 1}`}
-              className="rounded-md border border-black/[.08] px-2.5 py-2 text-sm text-red-600 hover:bg-red-600/5 dark:border-white/[.145]"
+              className="btn-icon-danger"
             >
               ×
             </button>
@@ -285,9 +275,7 @@ function RepeatableBlockyList({
         onAdd={() => onChange([...values, { nazov: "", suma: "" }])}
       />
       {values.length === 0 && (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Žiadne položky.
-        </p>
+        <p className="text-sm text-muted">Žiadne položky.</p>
       )}
       {values.map((row, index) => (
         <div key={index} className="flex items-center gap-2">
@@ -302,7 +290,7 @@ function RepeatableBlockyList({
               next[index] = { ...next[index], nazov: e.target.value };
               onChange(next);
             }}
-            className="flex-[2] rounded-md border border-black/[.08] bg-transparent px-3 py-2 text-sm dark:border-white/[.145]"
+            className="field min-w-0 flex-[2]"
           />
           <input
             type="text"
@@ -320,13 +308,13 @@ function RepeatableBlockyList({
               };
               onChange(next);
             }}
-            className="w-28 flex-none rounded-md border border-black/[.08] bg-transparent px-3 py-2 text-sm dark:border-white/[.145]"
+            className="field w-24 flex-none sm:w-28"
           />
           <button
             type="button"
             onClick={() => onChange(values.filter((_, i) => i !== index))}
             aria-label={`Odstrániť Blocky ${index + 1}`}
-            className="rounded-md border border-black/[.08] px-2.5 py-2 text-sm text-red-600 hover:bg-red-600/5 dark:border-white/[.145]"
+            className="btn-icon-danger"
           >
             ×
           </button>
@@ -339,12 +327,8 @@ function RepeatableBlockyList({
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-50 dark:hover:bg-[#ccc]"
-    >
-      {pending ? "Ukladá sa..." : "Uložiť"}
+    <button type="submit" disabled={pending} className="btn-primary w-full sm:w-auto">
+      {pending ? "Ukladá sa…" : "Uložiť"}
     </button>
   );
 }
@@ -523,21 +507,20 @@ export function DailyClosingForm() {
               // Unsupported in this browser; native click-to-open still applies.
             }
           }}
-          className="rounded-md border border-black/[.08] bg-transparent px-3 py-2 text-sm dark:border-white/[.145]"
+          className="field"
         />
         {isLoadingRecord && (
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Načítavam záznam pre zvolený dátum...
-          </p>
+          <p className="text-xs text-muted">Načítavam záznam pre zvolený dátum...</p>
         )}
       </div>
 
       {!isLoadingRecord && (
         <div
-          className={`rounded-md border px-3 py-2 text-sm font-medium ${
+          role="status"
+          className={`rounded-lg border px-3 py-2 text-sm font-medium ${
             lastSavedAt
-              ? "border-green-600 text-green-600 dark:border-green-400 dark:text-green-400"
-              : "border-orange-500 text-orange-500 dark:border-orange-400 dark:text-orange-400"
+              ? "border-success/30 bg-success/10 text-success"
+              : "border-warning/30 bg-warning/10 text-warning"
           }`}
         >
           {lastSavedAt
@@ -546,8 +529,10 @@ export function DailyClosingForm() {
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+      <div className="h-px bg-border" />
+
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm font-medium text-muted">
           {isFetchingDotykacka
             ? "Načítavam sumy z Dotykačky..."
             : "Sumy z Dotykačky"}
@@ -556,13 +541,13 @@ export function DailyClosingForm() {
           type="button"
           onClick={() => fetchDotykacka(date)}
           disabled={isFetchingDotykacka}
-          className="text-sm font-medium text-blue-600 hover:underline disabled:opacity-50 dark:text-blue-400"
+          className="btn-ghost"
         >
           Obnoviť
         </button>
       </div>
       {dotykackaResult && !dotykackaResult.ok && (
-        <p className="-mt-3 text-sm text-red-600">{dotykackaResult.error}</p>
+        <p className="-mt-3 text-sm text-danger">{dotykackaResult.error}</p>
       )}
 
       <AmountInput
@@ -590,29 +575,34 @@ export function DailyClosingForm() {
       />
 
       {dotykackaResult?.ok && (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1.5">
           <span className="text-sm font-medium">Storno</span>
-          <div className="cursor-not-allowed rounded-md border border-black/[.08] bg-black/[.03] px-3 py-2 text-sm text-zinc-500 dark:border-white/[.145] dark:bg-white/[.05] dark:text-zinc-400">
+          <div
+            className="field cursor-not-allowed bg-surface-muted text-muted shadow-none"
+            aria-disabled="true"
+          >
             {formatEur(dotykackaResult.storno)}
           </div>
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+      <div className="h-px bg-border" />
+
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm font-medium text-muted">
           {isFetchingDotypay ? "Načítavam sumy z Dotypay..." : "Sumy z Dotypay"}
         </span>
         <button
           type="button"
           onClick={() => fetchDotypay(date)}
           disabled={isFetchingDotypay}
-          className="text-sm font-medium text-blue-600 hover:underline disabled:opacity-50 dark:text-blue-400"
+          className="btn-ghost"
         >
           Obnoviť
         </button>
       </div>
       {dotypayResult && !dotypayResult.ok && (
-        <p className="-mt-3 text-sm text-red-600">{dotypayResult.error}</p>
+        <p className="-mt-3 text-sm text-danger">{dotypayResult.error}</p>
       )}
 
       <AmountInput
@@ -662,7 +652,7 @@ export function DailyClosingForm() {
         }
       />
       {dotypayResult?.ok && dotypayResult.unmatched.length > 0 && (
-        <p className="-mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="-mt-3 text-xs text-muted">
           Ďalšie terminály z Dotypay (nepriradené):{" "}
           {dotypayResult.unmatched
             .map((u) => `${u.tid}: ${formatEur(u.amount)}`)
@@ -722,12 +712,16 @@ export function DailyClosingForm() {
         onChange={(value) => setAmounts({ ...amounts, choiceTips: value })}
       />
 
+      <div className="h-px bg-border" />
+
       <RepeatableCouvertList values={couvert} onChange={setCouvert} />
       <RepeatableBlockyList values={blocky} onChange={setBlocky} />
 
-      <div className="flex flex-col gap-1 rounded-md border border-black/[.08] bg-black/[.02] px-3 py-2 dark:border-white/[.145] dark:bg-white/[.03]">
-        <span className="text-sm font-medium">Hotovosť do obálky</span>
-        <span className="text-lg font-semibold">
+      <div className="h-px bg-border" />
+
+      <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface-muted px-4 py-3">
+        <span className="text-sm font-medium text-muted">Hotovosť do obálky</span>
+        <span className="text-2xl font-semibold tracking-tight">
           {formatEur(hotovostDoObalky)}
         </span>
       </div>
@@ -737,7 +731,7 @@ export function DailyClosingForm() {
       {showMessage && state.message && (
         <p
           aria-live="polite"
-          className={`text-sm ${state.ok ? "text-green-600" : "text-red-600"}`}
+          className={`text-sm font-medium ${state.ok ? "text-success" : "text-danger"}`}
         >
           {state.message}
         </p>
