@@ -1,10 +1,10 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { CouvertRangeForm } from "./couvert-range-form";
+import { RangeSummaryForm } from "./range-summary-form";
 
 export const metadata: Metadata = {
-  title: "Súhrn Couvert - Oggi Zatvarac",
+  title: "Súhrn za obdobie - Oggi Zatvarac",
 };
 
 export default function CouvertyPage() {
@@ -16,15 +16,16 @@ export default function CouvertyPage() {
             ← Späť na uzávierku
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-            Súhrn Couvert
+            Súhrn za obdobie
           </h1>
           <p className="text-sm text-muted">
-            Vyberte obdobie - spočíta sa Couvert zo všetkých uzávierok uložených v ňom.
+            Vyberte obdobie - spočíta sa Couvert, Choice Tips a Blocky zo všetkých
+            uzávierok uložených v ňom.
           </p>
         </div>
         <div className="card">
           <Suspense fallback={<p className="text-sm text-muted">Načítava sa...</p>}>
-            <CouvertRangeForm />
+            <RangeSummaryForm />
           </Suspense>
         </div>
       </main>

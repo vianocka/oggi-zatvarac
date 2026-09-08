@@ -14,7 +14,7 @@ export default function Home() {
             Vyplňte formulár, hotovosť do obálky sa počíta automaticky.
           </p>
           <Link href="/couverty" className="btn-ghost self-center sm:self-start">
-            Súhrn Couvert za obdobie →
+            Súhrn za obdobie →
           </Link>
         </div>
         <div className="card">

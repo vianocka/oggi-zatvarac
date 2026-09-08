@@ -18,20 +18,41 @@ export type CouvertDaySummary = {
   cisty: number;
 };
 
-export type CouvertRangeSummary =
+export type ChoiceTipsDaySummary = {
+  date: string;
+  amount: number;
+};
+
+export type BlockyItemSummary = {
+  date: string;
+  nazov: string;
+  suma: number;
+};
+
+export type RangeSummary =
   | {
       ok: true;
-      totalCount: number;
-      totalZUctu: number;
-      totalCisty: number;
-      days: CouvertDaySummary[];
+      couvert: {
+        totalCount: number;
+        totalZUctu: number;
+        totalCisty: number;
+        days: CouvertDaySummary[];
+      };
+      choiceTips: {
+        total: number;
+        days: ChoiceTipsDaySummary[];
+      };
+      blocky: {
+        total: number;
+        items: BlockyItemSummary[];
+      };
     }
   | { ok: false; error: string };
 
-export async function getCouvertRangeSummary(
+export async function getRangeSummary(
   startDateStr: string,
   endDateStr: string
-): Promise<CouvertRangeSummary> {
+): Promise<RangeSummary> {
   const start = isoDateSchema.safeParse(startDateStr);
   const end = isoDateSchema.safeParse(endDateStr);
   if (!start.success || !end.success) {
@@ -48,11 +69,19 @@ export async function getCouvertRangeSummary(
         lte: new Date(`${end.data}T00:00:00.000Z`),
       },
     },
-    select: { date: true, couvert: true },
+    select: {
+      date: true,
+      couvert: true,
+      choiceTips: true,
+      blockyItems: {
+        select: { nazov: true, suma: true },
+        orderBy: { position: "asc" },
+      },
+    },
     orderBy: { date: "asc" },
   });
 
-  const days: CouvertDaySummary[] = records
+  const couvertDays: CouvertDaySummary[] = records
     .filter((record) => record.couvert.length > 0)
     .map((record) => {
       const amounts = record.couvert.map(Number);
@@ -64,9 +93,36 @@ export async function getCouvertRangeSummary(
       };
     });
 
-  const totalCount = days.reduce((sum, d) => sum + d.count, 0);
-  const totalZUctu = days.reduce((sum, d) => sum + d.zUctu, 0);
-  const totalCisty = days.reduce((sum, d) => sum + d.cisty, 0);
+  const choiceTipsDays: ChoiceTipsDaySummary[] = records
+    .filter((record) => Number(record.choiceTips) !== 0)
+    .map((record) => ({
+      date: record.date.toISOString().slice(0, 10),
+      amount: Number(record.choiceTips),
+    }));
 
-  return { ok: true, totalCount, totalZUctu, totalCisty, days };
+  const blockyItems: BlockyItemSummary[] = records.flatMap((record) =>
+    record.blockyItems.map((item) => ({
+      date: record.date.toISOString().slice(0, 10),
+      nazov: item.nazov,
+      suma: Number(item.suma),
+    }))
+  );
+
+  return {
+    ok: true,
+    couvert: {
+      totalCount: couvertDays.reduce((sum, d) => sum + d.count, 0),
+      totalZUctu: couvertDays.reduce((sum, d) => sum + d.zUctu, 0),
+      totalCisty: couvertDays.reduce((sum, d) => sum + d.cisty, 0),
+      days: couvertDays,
+    },
+    choiceTips: {
+      total: choiceTipsDays.reduce((sum, d) => sum + d.amount, 0),
+      days: choiceTipsDays,
+    },
+    blocky: {
+      total: blockyItems.reduce((sum, item) => sum + item.suma, 0),
+      items: blockyItems,
+    },
+  };
 }
