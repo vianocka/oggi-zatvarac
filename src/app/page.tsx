@@ -13,7 +13,7 @@ export default function Home() {
           <p className="text-sm text-muted">
             Vyplňte formulár, hotovosť do obálky sa počíta automaticky.
           </p>
-          <Link href="/couverty" className="btn-ghost self-center sm:self-start">
+          <Link href="/mesacny-prehlad" className="btn-ghost self-center sm:self-start">
             Súhrn za obdobie →
           </Link>
         </div>

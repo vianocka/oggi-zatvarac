@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { getRangeSummary, type RangeSummary } from "../couverty-actions";
+import { getRangeSummary, type RangeSummary } from "../mesacny-prehlad-actions";
 
 function todayIso() {
   const now = new Date();
@@ -44,6 +44,22 @@ function formatDate(iso: string) {
   return new Intl.DateTimeFormat("sk-SK", { dateStyle: "medium" }).format(
     new Date(`${iso}T00:00:00.000Z`)
   );
+}
+
+function formatDateTime(iso: string) {
+  return new Intl.DateTimeFormat("sk-SK", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(iso));
+}
+
+// Local (viewer's) calendar day the save happened on, so it can be compared
+// against the closing's own date - same convention as todayIso()/localToday()
+// above (local, not UTC, so it matches what the viewer sees on their clock).
+function localDateIso(iso: string) {
+  const d = new Date(iso);
+  const offset = d.getTimezoneOffset();
+  return new Date(d.getTime() - offset * 60_000).toISOString().slice(0, 10);
 }
 
 function SectionTotal({ label, value }: { label: string; value: number }) {
@@ -146,6 +162,49 @@ export function RangeSummaryForm() {
 
       {!isLoading && result?.ok && (
         <>
+          {/* Uložené dni */}
+          <div className="flex flex-col gap-3">
+            <span className="text-sm font-semibold">Uložené dni</span>
+            <p className="text-sm text-muted">
+              {result.savedDays.length === 0
+                ? "Žiadne uložené uzávierky za zvolené obdobie."
+                : `${result.savedDays.length} ${
+                    result.savedDays.length === 1 ? "uložený deň" : "uložených dní"
+                  }.`}
+            </p>
+            {result.savedDays.length > 0 && (
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-surface-muted text-left text-muted">
+                      <th className="px-3 py-2 font-medium">Dátum</th>
+                      <th className="px-3 py-2 font-medium">Posledné uloženie</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.savedDays.map((day) => {
+                      const savedOnSameDay = localDateIso(day.savedAt) === day.date;
+                      return (
+                        <tr key={day.date} className="border-b border-border last:border-0">
+                          <td className="px-3 py-2">{formatDate(day.date)}</td>
+                          <td
+                            className={`px-3 py-2 font-medium ${
+                              savedOnSameDay ? "text-success" : "text-danger"
+                            }`}
+                          >
+                            {formatDateTime(day.savedAt)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div className="h-px bg-border" />
+
           {/* Couvert */}
           <div className="flex flex-col gap-3">
             <span className="text-sm font-semibold">Couvert</span>

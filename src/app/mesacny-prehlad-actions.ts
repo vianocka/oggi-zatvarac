@@ -29,6 +29,11 @@ export type BlockyItemSummary = {
   suma: number;
 };
 
+export type SavedDaySummary = {
+  date: string;
+  savedAt: string;
+};
+
 export type RangeSummary =
   | {
       ok: true;
@@ -46,6 +51,7 @@ export type RangeSummary =
         total: number;
         items: BlockyItemSummary[];
       };
+      savedDays: SavedDaySummary[];
     }
   | { ok: false; error: string };
 
@@ -73,6 +79,7 @@ export async function getRangeSummary(
       date: true,
       couvert: true,
       choiceTips: true,
+      updatedAt: true,
       blockyItems: {
         select: { nazov: true, suma: true },
         orderBy: { position: "asc" },
@@ -108,6 +115,11 @@ export async function getRangeSummary(
     }))
   );
 
+  const savedDays: SavedDaySummary[] = records.map((record) => ({
+    date: record.date.toISOString().slice(0, 10),
+    savedAt: record.updatedAt.toISOString(),
+  }));
+
   return {
     ok: true,
     couvert: {
@@ -124,5 +136,6 @@ export async function getRangeSummary(
       total: blockyItems.reduce((sum, item) => sum + item.suma, 0),
       items: blockyItems,
     },
+    savedDays,
   };
 }
