@@ -66,18 +66,18 @@ function localDateIso(iso: string) {
   return new Date(d.getTime() - offset * 60_000).toISOString().slice(0, 10);
 }
 
-// Plain comma-decimal number (no currency symbol, no thousands grouping) so
-// Excel with an sk-SK locale reads it as a number, not as text, once pasted.
+// Plain dot-decimal number (no currency symbol, no thousands grouping) so
+// Excel with an en-US-style locale reads it as a number, not as text.
 function formatAmountForExcel(value: number) {
-  return value.toFixed(2).replace(".", ",");
+  return value.toFixed(2);
 }
 
-// Tab-separated rows paste into Excel as columns. ISO dates paste as real
-// dates regardless of Excel's locale, unlike the localized "formatDate".
+// Tab-separated rows paste into Excel as columns. No date column - just
+// name and amount.
 function blockyToTsv(items: BlockyItemSummary[]) {
-  const header = ["Dátum", "Názov", "Suma"].join("\t");
+  const header = ["Názov", "Suma"].join("\t");
   const rows = items.map((item) =>
-    [item.date, item.nazov, formatAmountForExcel(item.suma)].join("\t")
+    [item.nazov, formatAmountForExcel(item.suma)].join("\t")
   );
   return [header, ...rows].join("\n");
 }
