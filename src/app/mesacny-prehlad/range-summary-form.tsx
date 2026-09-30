@@ -2,7 +2,11 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { getRangeSummary, type RangeSummary } from "../mesacny-prehlad-actions";
+import {
+  getRangeSummary,
+  type RangeSummary,
+  type BlockyItemSummary,
+} from "../mesacny-prehlad-actions";
 
 function todayIso() {
   const now = new Date();
@@ -60,6 +64,40 @@ function localDateIso(iso: string) {
   const d = new Date(iso);
   const offset = d.getTimezoneOffset();
   return new Date(d.getTime() - offset * 60_000).toISOString().slice(0, 10);
+}
+
+// Plain comma-decimal number (no currency symbol, no thousands grouping) so
+// Excel with an sk-SK locale reads it as a number, not as text, once pasted.
+function formatAmountForExcel(value: number) {
+  return value.toFixed(2).replace(".", ",");
+}
+
+// Tab-separated rows paste into Excel as columns. ISO dates paste as real
+// dates regardless of Excel's locale, unlike the localized "formatDate".
+function blockyToTsv(items: BlockyItemSummary[]) {
+  const header = ["Dátum", "Názov", "Suma"].join("\t");
+  const rows = items.map((item) =>
+    [item.date, item.nazov, formatAmountForExcel(item.suma)].join("\t")
+  );
+  return [header, ...rows].join("\n");
+}
+
+function CopyBlockyButton({ items }: { items: BlockyItemSummary[] }) {
+  const [copied, setCopied] = useState(false);
+
+  return (
+    <button
+      type="button"
+      className="btn-ghost self-start"
+      onClick={async () => {
+        await navigator.clipboard.writeText(blockyToTsv(items));
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }}
+    >
+      {copied ? "Skopírované!" : "Kopírovať do Excelu"}
+    </button>
+  );
 }
 
 function SectionTotal({ label, value }: { label: string; value: number }) {
@@ -293,6 +331,9 @@ export function RangeSummaryForm() {
                     result.blocky.items.length === 1 ? "položka" : "položiek"
                   }.`}
             </p>
+            {result.blocky.items.length > 0 && (
+              <CopyBlockyButton items={result.blocky.items} />
+            )}
             {result.blocky.items.length > 0 && (
               <div className="overflow-x-auto rounded-lg border border-border">
                 <table className="w-full text-sm">
