@@ -72,14 +72,12 @@ function formatAmountForExcel(value: number) {
   return value.toFixed(2);
 }
 
-// Tab-separated rows paste into Excel as columns. No date column - just
-// name and amount.
+// Tab-separated rows paste into Excel as columns. No header row and no
+// date column - just name and amount.
 function blockyToTsv(items: BlockyItemSummary[]) {
-  const header = ["Názov", "Suma"].join("\t");
-  const rows = items.map((item) =>
-    [item.nazov, formatAmountForExcel(item.suma)].join("\t")
-  );
-  return [header, ...rows].join("\n");
+  return items
+    .map((item) => [item.nazov, formatAmountForExcel(item.suma)].join("\t"))
+    .join("\n");
 }
 
 function CopyBlockyButton({ items }: { items: BlockyItemSummary[] }) {
