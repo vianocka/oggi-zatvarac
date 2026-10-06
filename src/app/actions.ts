@@ -104,6 +104,7 @@ export type DailyClosingRecord = {
   wolt: number;
   choiceTips: number;
   couvert: number[];
+  skontrolovane: boolean;
   blocky: { nazov: string; suma: number }[];
   updatedAt: string;
 };
@@ -129,10 +130,30 @@ export async function getDailyClosing(
     wolt: Number(record.wolt),
     choiceTips: Number(record.choiceTips),
     couvert: record.couvert.map(Number),
+    skontrolovane: record.skontrolovane,
     blocky: record.blockyItems.map((item) => ({
       nazov: item.nazov,
       suma: Number(item.suma),
     })),
     updatedAt: record.updatedAt.toISOString(),
   };
+}
+
+// Admin-only flag: marks a saved day as reviewed. Only flips an existing
+// record - it never creates one - and saveDailyClosing leaves it untouched.
+export async function setSkontrolovane(
+  dateStr: string,
+  value: boolean
+): Promise<{ ok: boolean; skontrolovane: boolean }> {
+  const parsedDate = isoDateSchema.safeParse(dateStr);
+  if (!parsedDate.success) return { ok: false, skontrolovane: !value };
+
+  const result = await prisma.dailyClosing.updateMany({
+    where: { date: new Date(`${parsedDate.data}T00:00:00.000Z`) },
+    data: { skontrolovane: value },
+  });
+
+  return result.count > 0
+    ? { ok: true, skontrolovane: value }
+    : { ok: false, skontrolovane: !value };
 }

@@ -14,6 +14,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   getDailyClosing,
   saveDailyClosing,
+  setSkontrolovane,
   type DailyClosingState,
 } from "./actions";
 import {
@@ -343,7 +344,7 @@ function SubmitButton() {
   );
 }
 
-export function DailyClosingForm() {
+export function DailyClosingForm({ admin = false }: { admin?: boolean }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -357,6 +358,8 @@ export function DailyClosingForm() {
   // ISO timestamp of when the record for the selected date was last saved,
   // or null if it never has been.
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [skontrolovane, setSkontrolovaneState] = useState(false);
+  const [isTogglingChecked, startTogglingChecked] = useTransition();
 
   const [dotypayState, setDotypayState] = useState<{
     date: string;
@@ -432,11 +435,13 @@ export function DailyClosingForm() {
           }))
         );
         setLastSavedAt(record.updatedAt);
+        setSkontrolovaneState(record.skontrolovane);
       } else {
         setAmounts(emptyAmounts);
         setCouvert([]);
         setBlocky([]);
         setLastSavedAt(null);
+        setSkontrolovaneState(false);
       }
     });
 
@@ -556,6 +561,29 @@ export function DailyClosingForm() {
             ? `Uzávierka z tohoto dňa bola uložená dňa ${formatDateTime(lastSavedAt)}.`
             : "Táto uzávierka ešte nebola uložená."}
         </div>
+      )}
+
+      {admin && !isLoadingRecord && (
+        <button
+          type="button"
+          disabled={!lastSavedAt || isTogglingChecked}
+          aria-pressed={skontrolovane}
+          onClick={() => {
+            const next = !skontrolovane;
+            const requestedDate = date;
+            startTogglingChecked(async () => {
+              const result = await setSkontrolovane(requestedDate, next);
+              if (result.ok) setSkontrolovaneState(result.skontrolovane);
+            });
+          }}
+          className={`rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent/50 disabled:opacity-50 ${
+            skontrolovane
+              ? "bg-green-600 hover:bg-green-700"
+              : "bg-orange-500 hover:bg-orange-600"
+          }`}
+        >
+          Skontrolovane
+        </button>
       )}
 
       <div className="h-px bg-border" />
