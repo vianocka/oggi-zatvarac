@@ -16,6 +16,9 @@ export default function Home() {
           <Link href="/mesacny-prehlad" className="btn-ghost self-center sm:self-start">
             Súhrn za obdobie →
           </Link>
+          <Link href="/odhad" className="btn-ghost self-center sm:self-start">
+            Odhad tržby →
+          </Link>
         </div>
         <div className="card">
           <Suspense fallback={<p className="text-sm text-muted">Načítava sa...</p>}>

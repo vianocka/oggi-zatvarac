@@ -1,6 +1,6 @@
 "use server";
 
-import { DOTYKACKA_API_BASE_URL } from "@/lib/dotykacka-auth";
+import { DOTYKACKA_API_BASE_URL, getAccessToken } from "@/lib/dotykacka-auth";
 import { roundToCents } from "@/lib/daily-closing";
 
 const dateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/;
@@ -14,28 +14,6 @@ export type DotykackaDailyTotals =
   | { ok: false; error: string };
 
 type PaymentTypeInfoEntry = { typeId?: unknown; total?: unknown };
-
-async function getAccessToken(): Promise<string> {
-  const res = await fetch(`${DOTYKACKA_API_BASE_URL}/signin/token`, {
-    method: "POST",
-    headers: {
-      Authorization: `User ${process.env.DOTYKACKA_REFRESH_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ _cloudId: process.env.DOTYKACKA_CLOUD_ID }),
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    throw new Error(`Prihlásenie do Dotykačky zlyhalo (${res.status}).`);
-  }
-
-  const data = (await res.json()) as { accessToken?: unknown };
-  if (typeof data.accessToken !== "string") {
-    throw new Error("Dotykačka nevrátila access token.");
-  }
-  return data.accessToken;
-}
 
 function sumByTypeId(entries: unknown, typeId: string): number {
   if (!Array.isArray(entries)) return 0;
