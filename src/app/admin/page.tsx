@@ -13,9 +13,17 @@ export default function AdminPage() {
           <p className="text-sm text-muted">
             Rovnaký prehľad ako na úvodnej obrazovke, s označením skontrolovaných dní.
           </p>
-          <Link href="/mesacny-prehlad" className="btn-ghost self-center sm:self-start">
-            Súhrn za obdobie →
-          </Link>
+          <nav className="flex flex-wrap justify-center gap-x-4 gap-y-1 sm:justify-start">
+            <Link href="/" className="btn-ghost">
+              Denná uzávierka →
+            </Link>
+            <Link href="/mesacny-prehlad" className="btn-ghost">
+              Súhrn za obdobie →
+            </Link>
+            <Link href="/odhad" className="btn-ghost">
+              Odhad tržby →
+            </Link>
+          </nav>
         </div>
         <div className="card">
           <Suspense fallback={<p className="text-sm text-muted">Načítava sa...</p>}>
