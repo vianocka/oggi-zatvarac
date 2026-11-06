@@ -157,3 +157,26 @@ export async function setSkontrolovane(
     ? { ok: true, skontrolovane: value }
     : { ok: false, skontrolovane: !value };
 }
+
+// Admin calendar: which saved days in a month are checked. Days without a
+// saved closing are simply absent from the map.
+export async function getMonthCheckedStatus(
+  monthStr: string
+): Promise<Record<string, boolean>> {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthStr)) return {};
+  const [y, m] = monthStr.split("-").map(Number);
+
+  const records = await prisma.dailyClosing.findMany({
+    where: {
+      date: {
+        gte: new Date(Date.UTC(y, m - 1, 1)),
+        lt: new Date(Date.UTC(y, m, 1)),
+      },
+    },
+    select: { date: true, skontrolovane: true },
+  });
+
+  return Object.fromEntries(
+    records.map((r) => [r.date.toISOString().slice(0, 10), r.skontrolovane])
+  );
+}

@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { DailyClosingForm } from "./daily-closing-form";
 
 export default function Home() {
@@ -13,12 +12,6 @@ export default function Home() {
           <p className="text-sm text-muted">
             Vyplňte formulár, hotovosť do obálky sa počíta automaticky.
           </p>
-          <Link href="/mesacny-prehlad" className="btn-ghost self-center sm:self-start">
-            Súhrn za obdobie →
-          </Link>
-          <Link href="/odhad" className="btn-ghost self-center sm:self-start">
-            Odhad tržby →
-          </Link>
         </div>
         <div className="card">
           <Suspense fallback={<p className="text-sm text-muted">Načítava sa...</p>}>

@@ -25,6 +25,7 @@ import {
   getDotykackaDailyTotals,
   type DotykackaDailyTotals,
 } from "./dotykacka-actions";
+import { AdminCalendar } from "./admin-calendar";
 import { calculateHotovostDoObalky, couvertCistySuma } from "@/lib/daily-closing";
 
 const initialState: DailyClosingState = { ok: false, message: "" };
@@ -517,23 +518,31 @@ export function DailyClosingForm({ admin = false }: { admin?: boolean }) {
           >
             ‹
           </button>
-          <input
-            ref={dateInputRef}
-            id="date"
-            type="date"
-            lang="sk"
-            required
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            onClick={() => {
-              try {
-                dateInputRef.current?.showPicker?.();
-              } catch {
-                // Unsupported in this browser; native click-to-open still applies.
-              }
-            }}
-            className="field min-w-0 flex-1"
-          />
+          {admin ? (
+            <AdminCalendar
+              value={date}
+              onSelect={setDate}
+              refreshKey={`${lastSavedAt}|${skontrolovane}`}
+            />
+          ) : (
+            <input
+              ref={dateInputRef}
+              id="date"
+              type="date"
+              lang="sk"
+              required
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              onClick={() => {
+                try {
+                  dateInputRef.current?.showPicker?.();
+                } catch {
+                  // Unsupported in this browser; native click-to-open still applies.
+                }
+              }}
+              className="field min-w-0 flex-1"
+            />
+          )}
           <button
             type="button"
             onClick={() => setDate((d) => shiftDateIso(d, 1))}
