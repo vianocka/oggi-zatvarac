@@ -1,8 +1,10 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { logAccess } from "@/lib/access-log";
 import { DailyClosingForm } from "../daily-closing-form";
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  await logAccess("view", "/admin");
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-10 font-sans sm:px-6 sm:py-16">
       <main className="flex w-full max-w-lg flex-col gap-6">

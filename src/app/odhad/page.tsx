@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { logAccess } from "@/lib/access-log";
 import type { Metadata } from "next";
 import { OdhadView } from "./odhad-view";
 
@@ -6,7 +7,8 @@ export const metadata: Metadata = {
   title: "Odhad tržby - Oggi Zatvarac",
 };
 
-export default function OdhadPage() {
+export default async function OdhadPage() {
+  await logAccess("view", "/odhad");
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-10 font-sans sm:px-6 sm:py-16">
       <main className="flex w-full max-w-2xl flex-col gap-6">

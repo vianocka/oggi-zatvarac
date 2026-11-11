@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { logAccess } from "@/lib/access-log";
 import type { Metadata } from "next";
 import { RangeSummaryForm } from "./range-summary-form";
 
@@ -7,7 +8,8 @@ export const metadata: Metadata = {
   title: "Súhrn za obdobie - Oggi Zatvarac",
 };
 
-export default function CouvertyPage() {
+export default async function CouvertyPage() {
+  await logAccess("view", "/mesacny-prehlad");
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-10 font-sans sm:px-6 sm:py-16">
       <main className="flex w-full max-w-2xl flex-col gap-6">

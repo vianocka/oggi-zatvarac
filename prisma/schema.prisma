@@ -39,3 +39,17 @@ model BlockyItem {
 
   @@index([dailyClosingId])
 }
+
+model AccessLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  event     String // "view" | "login-ok" | "login-fail"
+  path      String
+  ip        String?
+  country   String?
+  region    String?
+  city      String?
+  userAgent String?
+
+  @@index([createdAt])
+}

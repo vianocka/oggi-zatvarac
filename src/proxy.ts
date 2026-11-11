@@ -1,6 +1,12 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import {
+  SUBPAGES_COOKIE,
+  isProtectedPath,
+  safeEqual as safeEqualStr,
+  sessionToken,
+} from "@/lib/subpage-auth";
 
 // Basic access gate: the site is meant to be opened only from the Android
 // app, which loads it once with `?key=<APP_ACCESS_KEY>` baked into its
@@ -26,7 +32,7 @@ function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(bufA, bufB);
 }
 
-export function proxy(request: NextRequest) {
+function accessKeyGate(request: NextRequest) {
   const accessKey = process.env.APP_ACCESS_KEY;
 
   // Gate is opt-in: unset APP_ACCESS_KEY (e.g. local dev) leaves the app
@@ -61,6 +67,29 @@ export function proxy(request: NextRequest) {
     status: 404,
     headers: { "Content-Type": "text/plain; charset=utf-8" },
   });
+}
+
+// Everything under the protected prefixes additionally needs the password
+// (SUBPAGES_PASSWORD), exchanged at /login for an httpOnly cookie. Fails
+// closed in production if the password isn't configured.
+export function proxy(request: NextRequest) {
+  const gated = accessKeyGate(request);
+  // A redirect/404 from the access-key gate wins; a pass-through carries on.
+  if (gated.headers.get("x-middleware-next") !== "1") return gated;
+
+  const { pathname, search } = request.nextUrl;
+  if (!isProtectedPath(pathname)) return gated;
+
+  const password = process.env.SUBPAGES_PASSWORD;
+  if (!password && process.env.NODE_ENV !== "production") return gated;
+
+  const cookieValue = request.cookies.get(SUBPAGES_COOKIE)?.value ?? "";
+  if (password && safeEqualStr(cookieValue, sessionToken(password))) return gated;
+
+  const url = request.nextUrl.clone();
+  url.pathname = "/login";
+  url.search = `?next=${encodeURIComponent(pathname + search)}`;
+  return NextResponse.redirect(url);
 }
 
 export const config = {
