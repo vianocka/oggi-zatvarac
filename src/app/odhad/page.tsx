@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LogoutButton } from "../login/logout-button";
 import { logAccess } from "@/lib/access-log";
 import type { Metadata } from "next";
 import { OdhadView } from "./odhad-view";
@@ -16,6 +17,7 @@ export default async function OdhadPage() {
           <Link href="/" className="btn-ghost self-center sm:self-start">
             ← Späť na uzávierku
           </Link>
+          <LogoutButton />
           <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Odhad tržby
           </h1>

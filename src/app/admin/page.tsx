@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { LogoutButton } from "../login/logout-button";
 import { logAccess } from "@/lib/access-log";
 import { DailyClosingForm } from "../daily-closing-form";
 
@@ -26,6 +27,7 @@ export default async function AdminPage() {
               Odhad tržby →
             </Link>
           </nav>
+          <LogoutButton />
         </div>
         <div className="card">
           <Suspense fallback={<p className="text-sm text-muted">Načítava sa...</p>}>

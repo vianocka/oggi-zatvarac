@@ -33,3 +33,8 @@ export async function login(formData: FormData) {
   await logAccess("login-ok", "/login");
   redirect(next);
 }
+
+export async function logout() {
+  (await cookies()).delete(SUBPAGES_COOKIE);
+  redirect("/login");
+}
